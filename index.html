@@ -38,34 +38,47 @@
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
                 video.srcObject = stream;
+                console.log("Kamera berhasil diakses");
             })
-            .catch((err) => console.error('Gagal mengakses kamera:', err));
+            .catch((err) => {
+                console.error("Gagal mengakses kamera:", err);
+            });
 
         // Ambil Foto dan Kirim Data ke Google Sheets
         captureButton.addEventListener('click', () => {
+            console.log("Tombol Ambil Foto diklik");
+
+            // Set ukuran canvas dan ambil gambar dari video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Data untuk dikirim
+            // Ambil foto dalam format base64
             const imageData = canvas.toDataURL('image/png');
+            console.log("Foto berhasil diambil:", imageData);
+
+            // Data untuk dikirim ke Google Sheets
             const data = {
                 id: employeeId,
                 timestamp: new Date().toISOString(),
                 image: imageData
             };
 
-            fetch('https://script.google.com/macros/s/AKfycbwkTMCp6aB9NkvSNORBJhn5MQRCbuhjuJCnT4_Ucaldm58MceS5gsyXyzVZaNZIjqiuLQ/exec', {
+            // Kirim data ke Google Apps Script
+            fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
                 method: 'POST',
                 body: JSON.stringify(data),
                 headers: { 'Content-Type': 'application/json' }
             })
             .then(response => response.json())
             .then(result => {
-                alert('Absensi berhasil!');
-                console.log(result);
+                console.log("Respons berhasil:", result);
+                alert('Foto dan data berhasil dikirim!');
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error("Error saat mengirim data:", error);
+                alert('Gagal mengirim data. Cek koneksi internet atau Apps Script.');
+            });
         });
     </script>
 </body>
