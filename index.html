@@ -6,77 +6,54 @@
     <title>Absensi Karyawan</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 20px; }
-        video { width: 100%; max-width: 400px; }
-        canvas { display: none; }
     </style>
 </head>
 <body>
-    <h1>Selfie untuk Absensi</h1>
+    <h1>Absensi Karyawan</h1>
     <p id="employee-id"></p>
-    <video id="video" autoplay playsinline></video>
-    <button id="capture">Ambil Foto</button>
-    <canvas id="canvas"></canvas>
+    <button id="submit">Kirim Kehadiran</button>
 
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const captureButton = document.getElementById('capture');
-        const context = canvas.getContext('2d');
+        const submitButton = document.getElementById('submit');
         const employeeIdElement = document.getElementById('employee-id');
 
-        // Fungsi untuk membaca parameter ID dari URL
+        // Ambil ID karyawan dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const employeeId = urlParams.get('id');
         if (!employeeId) {
             employeeIdElement.textContent = "ID Karyawan tidak ditemukan!";
-            captureButton.disabled = true;
+            submitButton.disabled = true;
         } else {
             employeeIdElement.textContent = `ID Karyawan: ${employeeId}`;
         }
 
-        // Akses Kamera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-                console.log("Kamera berhasil diakses");
-            })
-            .catch((err) => {
-                console.error("Gagal mengakses kamera:", err);
-            });
+        // Dapatkan informasi perangkat
+        const deviceInfo = navigator.userAgent;
 
-        // Ambil Foto dan Kirim Data ke Google Sheets
-        captureButton.addEventListener('click', () => {
-            console.log("Tombol Ambil Foto diklik");
-
-            // Set ukuran canvas dan ambil gambar dari video
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Ambil foto dalam format base64
-            const imageData = canvas.toDataURL('image/png');
-            console.log("Foto berhasil diambil:", imageData);
-
-            // Data untuk dikirim ke Google Sheets
+        // Kirim data absensi
+        submitButton.addEventListener('click', () => {
             const data = {
                 id: employeeId,
                 timestamp: new Date().toISOString(),
-                image: imageData
+                deviceInfo: deviceInfo
             };
 
             // Kirim data ke Google Apps Script
-            fetch('https://script.google.com/macros/s/AKfycbzDWLNO_lHJX7e-w5vT0sX1UB7ysgLVoAyz5ck4jj2AmDo3K385zy1cRnkOCyRVZO6rVw/exec', {
+            fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
                 method: 'POST',
                 body: JSON.stringify(data),
                 headers: { 'Content-Type': 'application/json' }
             })
             .then(response => response.json())
             .then(result => {
-                console.log("Respons berhasil:", result);
-                alert('Foto dan data berhasil dikirim!');
+                if (result.status === "success") {
+                    alert('Absensi berhasil dicatat!');
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
             })
             .catch(error => {
-                console.error("Error saat mengirim data:", error);
+                console.error("Error:", error);
                 alert('Gagal mengirim data. Cek koneksi internet atau Apps Script.');
             });
         });
