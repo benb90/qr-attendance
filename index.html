@@ -9,29 +9,22 @@
     </style>
 </head>
 <body>
-    <h1>Absensi Karyawan</h1>
-    <p id="employee-id"></p>
-    <button id="submit">Kirim Kehadiran</button>
+    <h1>Biclothing Attendance</h1>
+    <p id="status">Memproses absensi...</p>
 
     <script>
-        const submitButton = document.getElementById('submit');
-        const employeeIdElement = document.getElementById('employee-id');
+        const statusElement = document.getElementById('status');
 
         // Ambil ID karyawan dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const employeeId = urlParams.get('id');
         if (!employeeId) {
-            employeeIdElement.textContent = "ID Karyawan tidak ditemukan!";
-            submitButton.disabled = true;
+            statusElement.textContent = "ID Karyawan tidak ditemukan!";
         } else {
-            employeeIdElement.textContent = `ID Karyawan: ${employeeId}`;
-        }
+            // Dapatkan informasi perangkat
+            const deviceInfo = navigator.userAgent;
 
-        // Dapatkan informasi perangkat
-        const deviceInfo = navigator.userAgent;
-
-        // Kirim data absensi
-        submitButton.addEventListener('click', () => {
+            // Data untuk dikirim
             const data = {
                 id: employeeId,
                 timestamp: new Date().toISOString(),
@@ -47,16 +40,16 @@
             .then(response => response.json())
             .then(result => {
                 if (result.status === "success") {
-                    alert('Absensi berhasil dicatat!');
+                    statusElement.textContent = "Absensi berhasil dicatat!";
                 } else {
-                    alert(`Error: ${result.message}`);
+                    statusElement.textContent = `Error: ${result.message}`;
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert('Gagal mengirim data. Cek koneksi internet atau Apps Script.');
+                statusElement.textContent = 'Gagal mencatat absensi. Cek koneksi internet.';
             });
-        });
+        }
     </script>
 </body>
 </html>
